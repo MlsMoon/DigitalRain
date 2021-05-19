@@ -5,13 +5,52 @@ precision mediump int;
 
 #define PROCESSING_TEXTURE_SHADER
 
-uniform sampler2D texture;
+
+uniform sampler2D texture;//src
+uniform sampler2D texture_text;
+uniform sampler2D noise_text;
+
 uniform vec2 texOffset;
-uniform vec2 iResolution;
 uniform float iTime;
+uniform vec2 iResolution;
 
 varying vec4 vertColor;
 varying vec4 vertTexCoord;
+
+
+float text(vec2 fragCoord)
+{
+    vec2 uv0 = fragCoord;//uv0: 采样用的
+    vec2 uv1 = uv0;//uv1 : offest 
+    float slide = 64; // 对图片的切割个数
+
+    uv0 = fract( uv0 *slide);
+    uv1 *= slide;// uv1 : [0,slide]
+    uv1 -= mod(uv1 , 1);
+    uv0 = uv0 +  floor( (sin(iTime/8000 + uv1 *10 + texture(noise_text,fragCoord).rg )+1)*8 )  ;
+    
+
+    float text = texture(texture_text, uv0 * 0.0625 ).r;
+    
+    return text;
+}
+
+
+//in:uv  out : rgb
+vec3 rain(vec2 texcoord)
+{
+  vec2 uv0 = texcoord.xy;
+  uv0.x -= mod( uv0.x , 8.0/ iResolution.y );
+  float offest = sin(uv0.x*5000+0.598);
+  //速度
+  float speed=cos(uv0.x*30.0)*0.3 + 0.4; //偏移量+基础量
+  float y_scale = 1.7 ;
+  float y = fract( offest +uv0.y*y_scale - iTime/1000*speed);
+  vec3 baseCol = vec3(0.1,1.,0.35);
+  baseCol *= y*(y+1);
+  return baseCol;
+}
+
 
 void main(void) 
 {
@@ -39,29 +78,12 @@ void main(void)
   // vec4 col8 = texture2D(texture, tc8);
 
   // vec4 sum = 8.0 * col4 - (col0 + col1 + col2 + col3 + col5 + col6 + col7 + col8); 
-  // gl_FragColor = vec4(sum.rgb, 1.0) * vertColor;
 
-  vec2 uv0 = vertTexCoord.st;
-  uv0.x -= mod(uv0.x, 8.);
 
-  //偏移量
-  float offset=sin(uv0.x*15.0);
-  //速度
-  float speed=cos(uv0.x*3.0)*0.3 + 0.4; //偏移量+基础量
+  vec3 baseCol = rain( vertTexCoord.st);
+  float text = text(vertTexCoord.st);
+  
 
-  //y是什么?
-  //  uv.y / 分辨率的高度 = 越下面的值越大   [0,1]
-  // iTime.speed    = 按speed偏移 
-  //offest :  按x位置算出来的偏移
-  //darken   减淡
-  float y_scale = 2.0;
-  float darkenFactor = 1. ;
-  float y = fract((uv0.y/iResolution.y*y_scale) + iTime*speed + offset);
-  // float y = fract((fragCoord.y/iResolution.y*2));
 
-  vec3 baseCol = vec3(0.1,1,0.35);
-  // return (1.0- y )*baseCol * darkenFactor * res ;
-  vec3 res = (1.0- y)*(2-y)*baseCol * darkenFactor  ;
-
-  gl_FragColor = vec4(y,y,y,1.);
+  gl_FragColor = vec4( baseCol * text,1.0);
 }
