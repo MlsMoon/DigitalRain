@@ -43,7 +43,7 @@ vec3 rain(vec2 fragCoord)
     uv0.y = 1.0 - uv0.y ;
     float res =  texture(iChannel2, uv0).r ;
     res = 1 - res;
-    res *= 1.5 ;//让亮的地方更亮
+    res *= 1.75 ;//让亮的地方更亮
     res += 0.75;//让暗的地方亮
 
 
