@@ -11,6 +11,7 @@ PImage img;
 boolean enabled = true;
 PImage texture_text;
 PImage noise_text;
+PImage src_Edge;
 
 void setup() {
   size(1280, 960 , P2D);
@@ -31,9 +32,11 @@ void draw()
   {
 
     digitalrain.set("iTime",(float)millis());
-    shader(digitalrain);
+    // shader(digitalrain);
   }
   image(img, 0, 0,width,height);
+  filter(digitalrain);
+  src_Edge = copy();
 }
     
 void mousePressed() {
