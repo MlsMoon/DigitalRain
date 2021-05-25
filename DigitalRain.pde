@@ -20,8 +20,8 @@ void setup() {
   cameraInitial();
   texture_text = loadImage("texture_text.png");  
   noise_text = loadImage("noise_text.png");
-  digitalrain = loadShader("digitalrain.glsl");
-  edges = loadShader("edges.glsl");
+  //digitalrain = loadShader("digitalrain.glsl");
+  // edges = loadShader("edges.glsl");
   digitalrain.set("iResolution",(float)width,(float)height);
   digitalrain.set("texture_text",texture_text);
   
@@ -36,10 +36,10 @@ void draw() {
   if (enabled == true) 
   {
 
-    digitalrain.set("iTime",(float)millis());
+    // digitalrain.set("iTime",(float)millis());
     image(img_cam, 0, 0, width, height);
-    filter(edges);
-    src_Edge = copy();
+    // filter(edges);
+    // src_Edge = copy();
   }
 
 }
