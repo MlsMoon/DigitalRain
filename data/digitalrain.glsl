@@ -9,6 +9,7 @@ precision mediump int;
 uniform sampler2D texture;//src
 uniform sampler2D texture_text;
 uniform sampler2D noise_text;
+uniform sampler2D src_edge;
 
 uniform vec2 texOffset;
 uniform float iTime;
@@ -22,7 +23,7 @@ float text(vec2 fragCoord)
 {
     vec2 uv0 = fragCoord;//uv0: 采样用的
     vec2 uv1 = uv0;//uv1 : offest 
-    float slide = 64; // 对图片的切割个数
+    float slide = 81; // 对图片的切割个数
 
     uv0 = fract( uv0 *slide);
     uv1 *= slide;// uv1 : [0,slide]
@@ -39,16 +40,21 @@ float text(vec2 fragCoord)
 //in:uv  out : rgb
 vec3 rain(vec2 texcoord)
 {
+
+    float res =  texture(src_edge, (1-texcoord)).r ;
+    res *= 4. ;//让亮的地方更亮
+    res += 0.35;//让暗的地方亮
+
   vec2 uv0 = texcoord.xy;
   uv0.x -= mod( uv0.x , 8.0/ iResolution.y );
   float offest = sin(uv0.x*5000+0.598);
   //速度
   float speed=cos(uv0.x*30.0)*0.3 + 0.4; //偏移量+基础量
   float y_scale = 1.7 ;
-  float y = fract( offest +uv0.y*y_scale - iTime/1000*speed);
+  float y = fract( offest + (1-uv0.y)*y_scale - iTime/1000*speed);
   vec3 baseCol = vec3(0.1,1.,0.35);
   baseCol *= y*(y+1);
-  return baseCol;
+  return baseCol*res ;
 }
 
 
