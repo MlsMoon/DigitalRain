@@ -7,6 +7,8 @@ precision mediump int;
 
 uniform sampler2D texture;
 uniform vec2 texOffset;
+uniform float y_threshold = 0.5;//0-1
+
 
 varying vec4 vertColor;
 varying vec4 vertTexCoord;
@@ -17,9 +19,12 @@ float rgb_to_gray(vec3 rgb)
 }
 
 //边缘检测
+//这是我修改过的sobel边缘检测算子
+//正常的边缘检测出来的线过细
+//我将边缘线的范围进行了修改
 vec4 sobel (vec2  vertTexCoord)
 {
-    vec2 tc0 = vertTexCoord.st + vec2(-texOffset.s, -texOffset.t);
+  vec2 tc0 = vertTexCoord.st + vec2(-texOffset.s, -texOffset.t);
   vec2 tc1 = vertTexCoord.st + vec2(         0.0, -texOffset.t);
   vec2 tc2 = vertTexCoord.st + vec2(+texOffset.s, -texOffset.t);
   vec2 tc3 = vertTexCoord.st + vec2(-texOffset.s,          0.0);
@@ -39,13 +44,13 @@ vec4 sobel (vec2  vertTexCoord)
   float col7 = rgb_to_gray(texture2D(texture, tc7).rgb);
   float col8 = rgb_to_gray(texture2D(texture, tc8).rgb);
 
-  float sx = col0 + 2 * col3 + col6 - (col2 + 2 * col5 + col8);
-	float sy = col0 + 2 * col1 + col2 - (col6 + 2 * col7 + col8);
+  float sx = 2 * col0 + 4 * col3 + 2 * col6 - (2 * col2 + 4 * col5 + 2 * col8);
+	float sy = 2 * col0 + 4 * col1 + 2 * col2 - (2 * col6 + 4 * col7 + 2 * col8);
 	float dist = sx * sx + sy * sy;
 	if( dist> 0.1 )
 		return vec4(1.0);
 	else
-    dist *= 30;
+    dist *= 15;
     if(dist > 1.)
       dist =1.;
 		return  vec4(dist,dist,dist,1.0);
@@ -53,13 +58,18 @@ vec4 sobel (vec2  vertTexCoord)
 }
 
 void main(void) {
-  // Grouping texcoord variables in order to make it work in the GMA 950. See post #13
-  // in this thread:
-  // http://www.idevgames.com/forums/thread-3467.html
 
-
-
-  gl_FragColor =  sobel(vertTexCoord.st);
+    //用processing中传过来的y阈值线的值
+    //可能的优化:使用clip()函数
+    //似乎在shader中写if两个分支都需要跑一下
+    if(vertTexCoord.t > (1. - y_threshold) )
+      gl_FragColor =  sobel(vertTexCoord.st);
+    else
+    {
+      vec2 uv = vertTexCoord.xy;
+      uv.x = 1-uv.x;
+      gl_FragColor = texture(texture, uv).rgba;
+    }
 }
 
 
