@@ -66,17 +66,21 @@ void draw() {
   src_Edge = copy();//储存灰度图
   digitalrain.set("src_edge",src_Edge);//用灰度图做buffer生成图像
   filter(digitalrain);//应用shader
+  src_Edge = null; 
 
 }
 
 
 void keyPressed()
 {
-  isPressed = true;
+  // println("pressed " );
+  if(key == ' ')
+    isPressed = true;
 }
 
 void keyReleased()
 {
+    // println("release" );
   isPressed = false;
 }
 
